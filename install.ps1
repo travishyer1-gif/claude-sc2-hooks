@@ -79,7 +79,7 @@ $settings = @"
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$s/play-random.ps1\" \"$s/adjutant-research-complete.mp3\",\"$s/adjutant-upgrade-complete.mp3\",\"$s/abathur-evolution-complete.mp3\"",
+            "command": "powershell -ExecutionPolicy Bypass -File \"$s/play-random.ps1\" \"$s/adjutant-research-complete.mp3\",\"$s/adjutant-upgrade-complete.mp3\"",
             "async": true
           }
         ]
