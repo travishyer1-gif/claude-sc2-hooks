@@ -79,7 +79,7 @@ $settings = @"
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$s/play-random.ps1\" \"$s/adjutant-research-complete.mp3\",\"$s/scv-duty-reward.mp3\",\"$s/abathur-evolution-complete.mp3\"",
+            "command": "powershell -ExecutionPolicy Bypass -File \"$s/play-random.ps1\" \"$s/adjutant-research-complete.mp3\",\"$s/adjutant-upgrade-complete.mp3\",\"$s/abathur-evolution-complete.mp3\"",
             "async": true
           }
         ]
@@ -122,14 +122,14 @@ Write-Host "  UserPromptSubmit   -> SCV: butter my biscuit / you're the boss / b
 Write-Host "  SessionStart       -> Immortal: I feel your presence"
 Write-Host "  PermissionRequest  -> Zealot/Marauder: I await your command / your thoughts / say the word"
 Write-Host "  PostToolUseFailure -> Additional pylons / vespene gas"
-Write-Host "  Stop               -> Adjutant: research complete / duty reward / evolution complete"
+Write-Host "  Stop               -> Adjutant: research complete / upgrade complete / Abathur: evolution complete"
 Write-Host "  Notification       -> HT/Tank/DT: my charge / speak up / what would you ask"
 Write-Host ""
 Write-Host "Missing files you need to add manually:" -ForegroundColor Yellow
 Write-Host "  scv-yes03.mp3          (Well butter my biscuit)"
 Write-Host "  scv-what03.mp3         (By your will)"
 Write-Host "  zealot-what01.mp3      (I await your command)"
-Write-Host "  scv-duty-reward.mp3    (Duty is its own reward)"
+Write-Host "  adjutant-upgrade-complete.mp3    (Duty is its own reward)"
 Write-Host "  abathur-evolution-complete.mp3 (Evolution complete)"
 Write-Host ""
 Write-Host "My life for Aiur!" -ForegroundColor Blue
