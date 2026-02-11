@@ -5,7 +5,8 @@
   "type": "module",
   "main": "plugin.js",
   "scripts": {
-    "install": "bash install.sh"
+    "install": "bash install.sh",
+    "test": "node --test test/"
   },
   "repository": {
     "type": "git",

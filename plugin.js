@@ -62,6 +62,21 @@ export const SC2SoundPlugin = async ({ $, client }) => {
   let cachedSessionMap = null;
   let cachedLastIndex = null;
 
+  // Async mutex — serializes read-modify-write cycles on state files
+  let lock = Promise.resolve();
+
+  const withLock = async (fn) => {
+    const prev = lock;
+    let releaseLock;
+    lock = new Promise((resolve) => { releaseLock = resolve; });
+    await prev;
+    try {
+      return await fn();
+    } finally {
+      releaseLock();
+    }
+  };
+
   const ensureStateDir = async () => {
     await mkdir(stateDir, { recursive: true });
   };
@@ -114,38 +129,40 @@ export const SC2SoundPlugin = async ({ $, client }) => {
       return null;
     }
 
-    const soundPool = await loadSoundPool();
-    const eventSounds = soundPool[eventType];
+    return withLock(async () => {
+      const soundPool = await loadSoundPool();
+      const eventSounds = soundPool[eventType];
 
-    if (!Array.isArray(eventSounds) || eventSounds.length === 0) {
-      return null;
-    }
+      if (!Array.isArray(eventSounds) || eventSounds.length === 0) {
+        return null;
+      }
 
-    const sessionMap = await loadSessionMap();
+      const sessionMap = await loadSessionMap();
 
-    // Check if this session already has a sound assigned for this event
-    if (sessionMap[sessionID]?.[eventType]) {
-      return sessionMap[sessionID][eventType];
-    }
+      // Check if this session already has a sound assigned for this event
+      if (sessionMap[sessionID]?.[eventType]) {
+        return sessionMap[sessionID][eventType];
+      }
 
-    // Assign next sound in rotation
-    const lastIndex = await loadLastIndex();
-    const currentIndex = lastIndex[eventType] ?? -1;
-    const nextIndex = (currentIndex + 1) % eventSounds.length;
-    const soundEntry = eventSounds[nextIndex];
+      // Assign next sound in rotation
+      const lastIndex = await loadLastIndex();
+      const currentIndex = lastIndex[eventType] ?? -1;
+      const nextIndex = (currentIndex + 1) % eventSounds.length;
+      const soundEntry = eventSounds[nextIndex];
 
-    // Store assignment
-    if (!sessionMap[sessionID]) {
-      sessionMap[sessionID] = {};
-    }
-    sessionMap[sessionID][eventType] = soundEntry;
-    await saveSessionMap(sessionMap);
+      // Store assignment
+      if (!sessionMap[sessionID]) {
+        sessionMap[sessionID] = {};
+      }
+      sessionMap[sessionID][eventType] = soundEntry;
+      await saveSessionMap(sessionMap);
 
-    // Update rotation index
-    lastIndex[eventType] = nextIndex;
-    await saveLastIndex(lastIndex);
+      // Update rotation index
+      lastIndex[eventType] = nextIndex;
+      await saveLastIndex(lastIndex);
 
-    return soundEntry;
+      return soundEntry;
+    });
   };
 
   const playSound = async (sessionID, eventType) => {
@@ -223,11 +240,13 @@ export const SC2SoundPlugin = async ({ $, client }) => {
       // Session.deleted — Clean up state
       if (event.type === "session.deleted") {
         if (sessionID) {
-          const sessionMap = await loadSessionMap();
-          if (sessionMap[sessionID]) {
-            delete sessionMap[sessionID];
-            await saveSessionMap(sessionMap);
-          }
+          await withLock(async () => {
+            const sessionMap = await loadSessionMap();
+            if (sessionMap[sessionID]) {
+              delete sessionMap[sessionID];
+              await saveSessionMap(sessionMap);
+            }
+          });
         }
       }
     },
