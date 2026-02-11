@@ -1,15 +1,60 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { homedir } from "node:os";
+import { homedir, platform } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { execFile } from "node:child_process";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const IS_WINDOWS = platform() === "win32";
+
+/**
+ * Spawn a child process and return a promise.
+ * Used for both ffplay and PowerShell fallback.
+ */
+const spawnAsync = (cmd, args) =>
+  new Promise((resolve, reject) => {
+    const child = execFile(cmd, args, { windowsHide: true }, (err) => {
+      if (err) reject(err);
+      else resolve();
+    });
+    child.unref();
+  });
+
+/**
+ * Play audio via PowerShell using System.Windows.Media.MediaPlayer.
+ * Fallback for Windows when ffplay is not available.
+ */
+const playWithPowerShell = async (soundPath) => {
+  // Convert to absolute Windows path with backslashes for .NET
+  const winPath = soundPath.replace(/\//g, "\\");
+  const script = `
+Add-Type -AssemblyName presentationCore
+$p = New-Object System.Windows.Media.MediaPlayer
+$p.Open([uri]"${winPath}")
+$p.Play()
+Start-Sleep -Milliseconds 3000
+$p.Close()
+`;
+  await spawnAsync("powershell.exe", [
+    "-NoProfile",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-Command",
+    script,
+  ]);
+};
+
 export const SC2SoundPlugin = async ({ $, client }) => {
   const soundsDir = join(__dirname, "sounds");
   const poolPath = join(soundsDir, "pool.json");
-  const stateDir = join(homedir(), ".config/claude/sc2-state");
+
+  // Use ~/.claude/sc2-state on Windows, ~/.config/claude/sc2-state elsewhere
+  const stateDir = IS_WINDOWS
+    ? join(homedir(), ".claude", "sc2-state")
+    : join(homedir(), ".config/claude/sc2-state");
+
   const sessionMapPath = join(stateDir, "session-sound-map.json");
   const lastIndexPath = join(stateDir, "last-sound-index.json");
 
@@ -111,10 +156,24 @@ export const SC2SoundPlugin = async ({ $, client }) => {
 
     const soundPath = join(soundsDir, soundEntry.file);
     try {
-      // ffplay: quiet, auto-exit, no display window
-      await $`ffplay -nodisp -autoexit -loglevel quiet ${soundPath}`;
+      // Try ffplay first (works on all platforms when installed)
+      await spawnAsync("ffplay", [
+        "-nodisp",
+        "-autoexit",
+        "-loglevel",
+        "quiet",
+        soundPath,
+      ]);
     } catch {
-      // Silently ignore playback errors
+      // On Windows, fall back to PowerShell audio playback
+      if (IS_WINDOWS) {
+        try {
+          await playWithPowerShell(soundPath);
+        } catch {
+          // Silently ignore — no audio backend available
+        }
+      }
+      // On macOS/Linux, silently ignore (ffplay is the only backend)
     }
   };
 

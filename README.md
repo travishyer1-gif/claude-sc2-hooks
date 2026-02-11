@@ -14,22 +14,41 @@ Immersive SC2 sound effects for Claude Code events. Every agent interaction gets
 curl -fsSL https://raw.githubusercontent.com/travishyer1-gif/claude-sc2-hooks/master/install.sh | bash
 ```
 
+### Windows (Git Bash)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/travishyer1-gif/claude-sc2-hooks/master/install.sh | bash
+```
+
+> **Note:** ffmpeg is optional on Windows. If `ffplay` isn't installed, the plugin automatically falls back to PowerShell for audio playback. To install ffmpeg: `choco install ffmpeg` or `scoop install ffmpeg`.
+
+### Windows (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/travishyer1-gif/claude-sc2-hooks/master/install.ps1 | iex
+```
+
 Restart Claude Code and you're done.
 
 ### Manual Install
 
-1. Clone this repo to `~/.config/claude/plugins/sc2-hooks`
-2. Add to `~/.config/claude/settings.json`:
+1. Clone this repo:
+   - **macOS/Linux:** `~/.config/claude/plugins/sc2-hooks`
+   - **Windows:** `%USERPROFILE%\.claude\plugins\sc2-hooks`
+2. Add to your `settings.json`:
    ```json
    {
      "plugins": [
-       "/Users/yourname/.config/claude/plugins/sc2-hooks/plugin.js"
+       "/path/to/sc2-hooks/plugin.js"
      ]
    }
    ```
+   - **macOS/Linux:** `~/.config/claude/settings.json`
+   - **Windows:** `%USERPROFILE%\.claude\settings.json`
 3. Install ffmpeg (for sound playback):
    - **macOS:** `brew install ffmpeg`
    - **Linux:** `sudo apt-get install ffmpeg`
+   - **Windows:** `choco install ffmpeg` or `scoop install ffmpeg` (optional — PowerShell fallback is built-in)
 
 ---
 
@@ -85,7 +104,8 @@ All sounds are defined in `sounds/pool.json`. Add your own MP3s and edit the con
 3. **Rotation** — Cycles through sound variants for variety
 4. **Smart filtering** — Only notifies main sessions (not background subagents)
 5. **Session lifecycle** — Cleans up state when sessions end
-6. **Zero dependencies** — Just Node.js + ffmpeg
+6. **Cross-platform audio** — Uses `ffplay` when available, falls back to PowerShell on Windows
+7. **Zero dependencies** — Just Node.js + ffmpeg (or PowerShell on Windows)
 
 ---
 
@@ -97,7 +117,8 @@ claude-sc2-hooks/
 ├── sounds/
 │   ├── pool.json          # Sound configuration
 │   └── *.mp3              # SC2 sound files
-├── install.sh             # One-line installer
+├── install.sh             # One-line installer (macOS/Linux/Windows Git Bash)
+├── install.ps1            # PowerShell installer (Windows)
 └── README.md              # You are here
 ```
 
@@ -122,11 +143,23 @@ claude-sc2-hooks/
 
 ## 🗑️ Uninstall
 
+### macOS / Linux
+
 ```bash
 rm -rf ~/.config/claude/plugins/sc2-hooks
+rm -rf ~/.config/claude/sc2-state
 ```
 
 Then remove the plugin entry from `~/.config/claude/settings.json`.
+
+### Windows
+
+```powershell
+Remove-Item -Recurse -Force "$env:USERPROFILE\.claude\plugins\sc2-hooks"
+Remove-Item -Recurse -Force "$env:USERPROFILE\.claude\sc2-state"
+```
+
+Then remove the plugin entry from `%USERPROFILE%\.claude\settings.json`.
 
 ---
 

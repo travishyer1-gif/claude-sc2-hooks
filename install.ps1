@@ -1,135 +1,139 @@
-# Claude Code - StarCraft II Sound Hooks Installer
-# Copies sounds and configures Claude Code hooks with SC2 quotes
+# Claude Code - StarCraft II Sound Hooks Installer (Plugin Architecture)
+# Clones repo, registers plugin.js, and sets up state directory
 
 $ErrorActionPreference = "Stop"
 
+Write-Host ""
+Write-Host "Installing StarCraft II Sound Hooks for Claude Code..." -ForegroundColor Cyan
+Write-Host ""
+
 $claudeDir = "$env:USERPROFILE\.claude"
-$soundsDir = "$claudeDir\sounds"
+$installDir = "$claudeDir\plugins\sc2-hooks"
+$stateDir = "$claudeDir\sc2-state"
 $settingsFile = "$claudeDir\settings.json"
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$repoUrl = "https://github.com/travishyer1-gif/claude-sc2-hooks.git"
 
-# Create sounds directory
-if (-not (Test-Path $soundsDir)) {
-    New-Item -ItemType Directory -Path $soundsDir -Force | Out-Null
+# Check for ffplay / ffmpeg (optional — PowerShell fallback is built-in)
+if (-not (Get-Command ffplay -ErrorAction SilentlyContinue)) {
+    Write-Host "ffplay not found. Checking for package managers..." -ForegroundColor Yellow
+
+    $installed = $false
+
+    if (Get-Command choco -ErrorAction SilentlyContinue) {
+        Write-Host "  Found Chocolatey, installing ffmpeg..." -ForegroundColor Cyan
+        try {
+            choco install ffmpeg -y | Out-Null
+            $installed = $true
+        } catch {
+            Write-Host "  Chocolatey install failed." -ForegroundColor Yellow
+        }
+    }
+
+    if (-not $installed -and (Get-Command scoop -ErrorAction SilentlyContinue)) {
+        Write-Host "  Found Scoop, installing ffmpeg..." -ForegroundColor Cyan
+        try {
+            scoop install ffmpeg | Out-Null
+            $installed = $true
+        } catch {
+            Write-Host "  Scoop install failed." -ForegroundColor Yellow
+        }
+    }
+
+    if (-not $installed -and (Get-Command winget -ErrorAction SilentlyContinue)) {
+        Write-Host "  Found winget, installing ffmpeg..." -ForegroundColor Cyan
+        try {
+            winget install --id Gyan.FFmpeg -e --accept-package-agreements --accept-source-agreements | Out-Null
+            $installed = $true
+        } catch {
+            Write-Host "  winget install failed." -ForegroundColor Yellow
+        }
+    }
+
+    if (-not $installed) {
+        Write-Host ""
+        Write-Host "  Could not install ffmpeg automatically." -ForegroundColor Yellow
+        Write-Host "  Install manually: https://ffmpeg.org/download.html" -ForegroundColor Yellow
+        Write-Host "  Or run: choco install ffmpeg / scoop install ffmpeg / winget install Gyan.FFmpeg" -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "  No worries - the plugin will use PowerShell for audio playback instead." -ForegroundColor Green
+        Write-Host ""
+    }
+} else {
+    Write-Host "ffplay found." -ForegroundColor Green
 }
 
-# Copy all mp3 files and scripts
-Write-Host "Copying SC2 sound files..." -ForegroundColor Cyan
-Copy-Item "$scriptDir\*.mp3" -Destination $soundsDir -Force
-Copy-Item "$scriptDir\play.ps1" -Destination $soundsDir -Force
-Copy-Item "$scriptDir\play-random.ps1" -Destination $soundsDir -Force
-
-$s = $soundsDir -replace '\\', '/'
-
-# Build settings JSON
-$settings = @"
-{
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$s/play-random.ps1\" \"$s/scv-yes03.mp3\",\"$s/scv-yes05.mp3\",\"$s/scv-what03.mp3\"",
-            "async": true
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$s/play.ps1\" \"$s/immortal-what01.mp3\"",
-            "async": true
-          }
-        ]
-      }
-    ],
-    "PermissionRequest": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$s/play-random.ps1\" \"$s/zealot-what01.mp3\",\"$s/zealot-what00.mp3\",\"$s/marauder-say-the-word.mp3\"",
-            "async": true
-          }
-        ]
-      }
-    ],
-    "PostToolUseFailure": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$s/play-random.ps1\" \"$s/additional-pylons.mp3\",\"$s/vespene-gas.mp3\"",
-            "async": true
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$s/play-random.ps1\" \"$s/adjutant-research-complete.mp3\",\"$s/adjutant-upgrade-complete.mp3\"",
-            "async": true
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$s/play-random.ps1\" \"$s/hightemplar-what00.mp3\",\"$s/siegetank-speak-up.mp3\",\"$s/darktemplar-what-would-you-ask.mp3\"",
-            "async": true
-          }
-        ]
-      }
-    ]
-  }
+# Clone or update repository
+if (Test-Path $installDir) {
+    Write-Host "Updating existing installation..." -ForegroundColor Cyan
+    Push-Location $installDir
+    try {
+        git pull
+    } catch {
+        Write-Host "  git pull failed, re-cloning..." -ForegroundColor Yellow
+        Pop-Location
+        Remove-Item -Recurse -Force $installDir
+        git clone $repoUrl $installDir
+    }
+    if ((Get-Location).Path -eq $installDir) { Pop-Location }
+} else {
+    Write-Host "Cloning repository..." -ForegroundColor Cyan
+    $parentDir = Split-Path $installDir -Parent
+    if (-not (Test-Path $parentDir)) {
+        New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+    }
+    git clone $repoUrl $installDir
 }
-"@
 
-# Check for existing settings
-if (Test-Path $settingsFile) {
-    Write-Host ""
-    Write-Host "WARNING: Existing settings.json found at $settingsFile" -ForegroundColor Yellow
-    Write-Host "This will OVERWRITE your current hooks configuration." -ForegroundColor Yellow
-    $confirm = Read-Host "Continue? (y/N)"
-    if ($confirm -ne 'y' -and $confirm -ne 'Y') {
-        Write-Host "Aborted. Sound files were still copied to $soundsDir" -ForegroundColor Yellow
-        exit 0
+# Create state directory
+if (-not (Test-Path $stateDir)) {
+    New-Item -ItemType Directory -Path $stateDir -Force | Out-Null
+}
+
+# Register plugin in Claude Code settings
+$pluginPath = "$installDir\plugin.js" -replace '\\', '/'
+
+if (-not (Test-Path $settingsFile)) {
+    Write-Host "Creating new settings.json..." -ForegroundColor Cyan
+    @{ plugins = @($pluginPath) } | ConvertTo-Json -Depth 10 | Set-Content -Path $settingsFile -Encoding UTF8
+    Write-Host "Plugin registered successfully." -ForegroundColor Green
+} else {
+    $settings = Get-Content $settingsFile -Raw | ConvertFrom-Json
+
+    # Ensure plugins array exists
+    if (-not $settings.plugins) {
+        $settings | Add-Member -NotePropertyName "plugins" -NotePropertyValue @() -Force
+    }
+
+    # Check if already registered
+    $alreadyRegistered = $settings.plugins | Where-Object { $_ -like "*sc2-hooks/plugin.js*" }
+
+    if ($alreadyRegistered) {
+        Write-Host "Plugin already registered in settings.json." -ForegroundColor Green
+    } else {
+        $settings.plugins = @($settings.plugins) + $pluginPath
+        $settings | ConvertTo-Json -Depth 10 | Set-Content -Path $settingsFile -Encoding UTF8
+        Write-Host "Plugin registered successfully." -ForegroundColor Green
     }
 }
 
-$settings | Set-Content -Path $settingsFile -Encoding UTF8
 Write-Host ""
-Write-Host "SC2 hooks installed successfully!" -ForegroundColor Green
+Write-Host "Installation complete!" -ForegroundColor Green
 Write-Host ""
-Write-Host "Hook assignments:" -ForegroundColor Cyan
-Write-Host "  UserPromptSubmit   -> SCV: butter my biscuit / you're the boss / by your will"
-Write-Host "  SessionStart       -> Immortal: I feel your presence"
-Write-Host "  PermissionRequest  -> Zealot/Marauder: I await your command / your thoughts / say the word"
-Write-Host "  PostToolUseFailure -> Additional pylons / vespene gas"
-Write-Host "  Stop               -> Adjutant: research complete / upgrade complete / Abathur: evolution complete"
-Write-Host "  Notification       -> HT/Tank/DT: my charge / speak up / what would you ask"
+Write-Host "Next steps:" -ForegroundColor Cyan
+Write-Host "  1. Restart Claude Code (if running)"
+Write-Host "  2. Sounds will play on these events:"
+Write-Host "     - User message submitted -> SCV acknowledgment"
+Write-Host "     - Session starts -> Immortal greeting"
+Write-Host "     - Agent finishes -> Adjutant completion"
+Write-Host "     - Permission needed -> Zealot/Marauder prompt"
+Write-Host "     - Tool fails -> Pylons/Vespene error"
 Write-Host ""
-Write-Host "Missing files you need to add manually:" -ForegroundColor Yellow
-Write-Host "  scv-yes03.mp3          (Well butter my biscuit)"
-Write-Host "  scv-what03.mp3         (By your will)"
-Write-Host "  zealot-what01.mp3      (I await your command)"
-Write-Host "  adjutant-upgrade-complete.mp3    (Duty is its own reward)"
-Write-Host "  abathur-evolution-complete.mp3 (Evolution complete)"
+Write-Host "Customize sounds:" -ForegroundColor Cyan
+Write-Host "  Edit: $installDir\sounds\pool.json"
+Write-Host ""
+Write-Host "Uninstall:" -ForegroundColor Cyan
+Write-Host "  Remove-Item -Recurse -Force `"$installDir`""
+Write-Host "  Remove-Item -Recurse -Force `"$stateDir`""
+Write-Host "  Remove plugin entry from $settingsFile"
 Write-Host ""
 Write-Host "My life for Aiur!" -ForegroundColor Blue
