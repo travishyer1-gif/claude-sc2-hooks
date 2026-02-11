@@ -1,0 +1,18 @@
+# Node modules (if anyone runs npm install)
+node_modules/
+
+# State files (generated at runtime)
+*.json.backup
+session-sound-map.json
+last-sound-index.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

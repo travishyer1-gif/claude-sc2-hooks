@@ -1,0 +1,67 @@
+{
+  "userPrompt": [
+    {
+      "file": "scv-yes05.mp3",
+      "quote": "You're the boss!",
+      "unit": "SCV"
+    },
+    {
+      "file": "scv-yes03.mp3",
+      "quote": "Well butter my biscuit",
+      "unit": "SCV"
+    },
+    {
+      "file": "scv-what03.mp3",
+      "quote": "By your will",
+      "unit": "SCV"
+    }
+  ],
+  "sessionStart": [
+    {
+      "file": "immortal-what01.mp3",
+      "quote": "I feel your presence",
+      "unit": "Immortal"
+    }
+  ],
+  "sessionIdle": [
+    {
+      "file": "adjutant-research-complete.mp3",
+      "quote": "Research complete",
+      "unit": "Adjutant"
+    },
+    {
+      "file": "adjutant-upgrade-complete.mp3",
+      "quote": "Upgrade complete",
+      "unit": "Adjutant"
+    }
+  ],
+  "permissionAsked": [
+    {
+      "file": "zealot-what01.mp3",
+      "quote": "I await your command",
+      "unit": "Zealot"
+    },
+    {
+      "file": "zealot-what00.mp3",
+      "quote": "Your thoughts?",
+      "unit": "Zealot"
+    },
+    {
+      "file": "marauder-say-the-word.mp3",
+      "quote": "Say the word, baby",
+      "unit": "Marauder"
+    }
+  ],
+  "toolFailure": [
+    {
+      "file": "additional-pylons.mp3",
+      "quote": "You must construct additional pylons!",
+      "unit": "Protoss Advisor"
+    },
+    {
+      "file": "vespene-gas.mp3",
+      "quote": "You require more vespene gas",
+      "unit": "Protoss Advisor"
+    }
+  ]
+}

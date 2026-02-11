@@ -1,0 +1,31 @@
+{
+  "name": "claude-sc2-hooks",
+  "version": "2.0.0",
+  "description": "StarCraft II sound hooks for Claude Code - Production-ready plugin with cross-platform support",
+  "type": "module",
+  "main": "plugin.js",
+  "scripts": {
+    "install": "bash install.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/travishyer1-gif/claude-sc2-hooks.git"
+  },
+  "keywords": [
+    "claude-code",
+    "starcraft",
+    "sc2",
+    "sound-hooks",
+    "plugin",
+    "ai",
+    "notifications"
+  ],
+  "author": "Travis Hyer",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "peerDependencies": {
+    "claude-code": "*"
+  }
+}
