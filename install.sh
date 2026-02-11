@@ -108,13 +108,37 @@ if grep -q "sc2-hooks/plugin.js" "$SETTINGS_FILE" 2>/dev/null; then
 else
   echo "📝 Registering plugin in settings.json..."
 
-  # Use Python to safely merge JSON
-  PYTHON_CMD="python3"
-  if [[ "$OS" == "windows" ]] && ! command -v python3 &> /dev/null; then
-    PYTHON_CMD="python"
+  # Use Node.js on Windows (always available with Claude Code, avoids Windows python stub)
+  # Use Python on macOS/Linux, fall back to Node.js
+  if [[ "$OS" == "windows" ]]; then
+    if command -v node &> /dev/null; then
+      JSON_CMD="node"
+    else
+      echo "❌ Node.js not found. Claude Code requires Node.js — please install it."
+      exit 1
+    fi
+  elif command -v python3 &> /dev/null; then
+    JSON_CMD="python3"
+  elif command -v node &> /dev/null; then
+    JSON_CMD="node"
+  else
+    echo "❌ Neither Python nor Node.js found. Cannot register plugin."
+    exit 1
   fi
 
-  $PYTHON_CMD -c "
+  if [[ "$JSON_CMD" == "node" ]]; then
+    node -e "
+const fs = require('fs');
+const settingsPath = process.argv[1];
+const pluginPath = process.argv[2];
+const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+if (!settings.plugins) settings.plugins = [];
+if (!settings.plugins.includes(pluginPath)) settings.plugins.push(pluginPath);
+fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+console.log('✅ Plugin registered successfully');
+" "$SETTINGS_FILE" "$PLUGIN_PATH"
+  else
+    $JSON_CMD -c "
 import json
 
 settings_path = r'''$SETTINGS_FILE'''
@@ -134,6 +158,7 @@ with open(settings_path, 'w') as f:
 
 print('✅ Plugin registered successfully')
 "
+  fi
 fi
 
 echo ""
