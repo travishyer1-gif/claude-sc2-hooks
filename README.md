@@ -1,160 +1,58 @@
-# 🎮 StarCraft II Sound Hooks for Claude Code
+# Claude Code - StarCraft II Sound Hooks
 
-Immersive SC2 sound effects for Claude Code events. Every agent interaction gets an iconic StarCraft quote.
+SC2 sound effects for Claude Code hooks. Terran, Protoss, and Zerg quotes mapped to Claude Code events.
 
-**Production-ready** • **Cross-platform** • **Zero config** • **One-line install**
+## Hook Assignments
 
----
+| Hook | Sounds | Vibe |
+|------|--------|------|
+| **UserPromptSubmit** | SCV: "Well butter my biscuit" / "You're the boss!" / "By your will" | Acknowledged, working on it |
+| **SessionStart** | Immortal: "I feel your presence" | I'm online, ready |
+| **PermissionRequest** | Zealot: "I await your command" / "Your thoughts?" / Marauder: "Say the word, baby" | Awaiting orders |
+| **PostToolUseFailure** | "You must construct additional pylons!" / "You require more vespene gas" | Something broke |
+| **Stop** | Adjutant: "Research complete" / "Duty is its own reward" / Abathur: "Evolution complete" | Task complete |
+| **Notification** | High Templar: "My charge?" / Siege Tank: "Speak up" / Dark Templar: "What would you ask of us?" | Needs attention |
 
-## 🚀 Quick Install
+## Install (Windows)
 
-### macOS / Linux
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/travishyer1-gif/claude-sc2-hooks/master/install.sh | bash
+```powershell
+powershell -ExecutionPolicy Bypass -File install.ps1
 ```
 
-Restart Claude Code and you're done.
+This copies sound files to `~/.claude/sounds/` and writes hook config to `~/.claude/settings.json`.
 
-### Manual Install
+**Note:** This overwrites existing hooks in `settings.json`. Back up your settings first if you have custom config.
 
-1. Clone this repo to `~/.config/claude/plugins/sc2-hooks`
-2. Add to `~/.config/claude/settings.json`:
-   ```json
-   {
-     "plugins": [
-       "/Users/yourname/.config/claude/plugins/sc2-hooks/plugin.js"
-     ]
-   }
-   ```
-3. Install ffmpeg (for sound playback):
-   - **macOS:** `brew install ffmpeg`
-   - **Linux:** `sudo apt-get install ffmpeg`
+## Sound Files
 
----
+### Included in repo
+| File | Quote | Unit |
+|------|-------|------|
+| `additional-pylons.mp3` | "You must construct additional pylons!" | Protoss Advisor |
+| `adjutant-research-complete.mp3` | "Research complete" | Adjutant |
+| `darktemplar-what-would-you-ask.mp3` | "What would you ask of us?" | Dark Templar |
+| `hightemplar-what00.mp3` | "My charge?" | High Templar |
+| `immortal-what01.mp3` | "I feel your presence" | Immortal |
+| `marauder-say-the-word.mp3` | "Say the word, baby" | Marauder |
+| `scv-yes05.mp3` | "You're the boss!" | SCV |
+| `siegetank-speak-up.mp3` | "Speak up" | Siege Tank |
+| `vespene-gas.mp3` | "You require more vespene gas" | Protoss Advisor |
+| `zealot-what00.mp3` | "Your thoughts?" | Zealot |
 
-## 🎵 Sound Events
+### Need to add manually
+| File | Quote | Unit | Source |
+|------|-------|------|--------|
+| `scv-yes03.mp3` | "Well butter my biscuit" | SCV | Soundboard / game files |
+| `scv-what03.mp3` | "By your will" | SCV | Soundboard / game files |
+| `zealot-what01.mp3` | "I await your command" | Zealot | Soundboard / game files |
+| `adjutant-upgrade-complete.mp3 | "Upgrade complete" | Adjutant | Soundboard / game files |
+| `abathur-evolution-complete.mp3` | "Evolution complete" | Abathur | User-provided |
 
-| Event | Sound | Quote | Vibe |
-|-------|-------|-------|------|
-| **User message sent** | SCV | "You're the boss!" / "Well butter my biscuit" / "By your will" | Roger that, working on it |
-| **Session starts** | Immortal | "I feel your presence" | I'm online, ready to serve |
-| **Agent finishes** | Adjutant | "Research complete" / "Upgrade complete" | Task complete |
-| **Permission needed** | Zealot / Marauder | "I await your command" / "Say the word, baby" | Awaiting orders |
-| **Tool fails** | Protoss Advisor | "You must construct additional pylons!" / "You require more vespene gas" | Something broke |
+## Files
 
----
+- `play.ps1` - Plays a single sound file
+- `play-random.ps1` - Picks and plays a random sound from a list
+- `install.ps1` - Automated installer
+- `*.mp3` - SC2 sound clips
 
-## 🎨 Customization
-
-All sounds are defined in `sounds/pool.json`. Add your own MP3s and edit the config:
-
-```json
-{
-  "userPrompt": [
-    {
-      "file": "scv-yes05.mp3",
-      "quote": "You're the boss!",
-      "unit": "SCV"
-    }
-  ],
-  "toolFailure": [
-    {
-      "file": "additional-pylons.mp3",
-      "quote": "You must construct additional pylons!",
-      "unit": "Protoss Advisor"
-    }
-  ]
-}
-```
-
-### Event Types
-
-- `userPrompt` — User submits a message
-- `sessionStart` — New session created
-- `sessionIdle` — Agent finishes responding (main sessions only)
-- `permissionAsked` — Agent needs permission to proceed
-- `toolFailure` — Tool execution failed
-
----
-
-## 🔧 How It Works
-
-1. **Plugin architecture** — Exports a proper Claude Code plugin
-2. **State management** — Persists sound assignments per session
-3. **Rotation** — Cycles through sound variants for variety
-4. **Smart filtering** — Only notifies main sessions (not background subagents)
-5. **Session lifecycle** — Cleans up state when sessions end
-6. **Zero dependencies** — Just Node.js + ffmpeg
-
----
-
-## 📂 File Structure
-
-```
-claude-sc2-hooks/
-├── plugin.js              # Main plugin (Node.js)
-├── sounds/
-│   ├── pool.json          # Sound configuration
-│   └── *.mp3              # SC2 sound files
-├── install.sh             # One-line installer
-└── README.md              # You are here
-```
-
----
-
-## 🎯 Included Sounds
-
-### Protoss
-- **Immortal:** "I feel your presence"
-- **High Templar:** "My charge?"
-- **Dark Templar:** "What would you ask of us?"
-- **Zealot:** "I await your command" / "Your thoughts?"
-- **Protoss Advisor:** "You must construct additional pylons!" / "You require more vespene gas"
-
-### Terran
-- **SCV:** "You're the boss!" / "Well butter my biscuit" / "By your will"
-- **Adjutant:** "Research complete" / "Upgrade complete"
-- **Marauder:** "Say the word, baby"
-- **Siege Tank:** "Speak up"
-
----
-
-## 🗑️ Uninstall
-
-```bash
-rm -rf ~/.config/claude/plugins/sc2-hooks
-```
-
-Then remove the plugin entry from `~/.config/claude/settings.json`.
-
----
-
-## 🤝 Contributing
-
-Want to add Zerg sounds? More Terran quotes? Submit a PR!
-
-1. Add MP3 files to `sounds/`
-2. Update `sounds/pool.json`
-3. Test with `node plugin.js` (requires Claude Code running)
-4. Submit PR
-
----
-
-## 📜 License
-
-MIT — Use freely, modify as you like.
-
----
-
-## 🎮 Credits
-
-- Sound files extracted from StarCraft II
-- Inspired by Blizzard's iconic sound design
-- Built for the Claude Code community
-
----
-
-**My life for Aiur!** 🗡️
-
-*En Taro Adun, developers.*
+## My life for Aiur!

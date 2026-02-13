@@ -15,7 +15,7 @@ if (-not (Test-Path $soundsDir)) {
 
 # Copy all mp3 files and scripts
 Write-Host "Copying SC2 sound files..." -ForegroundColor Cyan
-Copy-Item "$scriptDir\*.mp3" -Destination $soundsDir -Force
+Copy-Item "$scriptDir\sounds\*.mp3" -Destination $soundsDir -Force
 Copy-Item "$scriptDir\play.ps1" -Destination $soundsDir -Force
 Copy-Item "$scriptDir\play-random.ps1" -Destination $soundsDir -Force
 
@@ -31,7 +31,7 @@ $settings = @"
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$s/play-random.ps1\" \"$s/scv-yes03.mp3\",\"$s/scv-yes05.mp3\",\"$s/scv-what03.mp3\"",
+            "command": "powershell -ExecutionPolicy Bypass -Command \"& '$s/play-random.ps1' '$s/scv-yes03.mp3','$s/scv-yes05.mp3','$s/scv-what03.mp3'\"",
             "async": true
           }
         ]
@@ -55,7 +55,7 @@ $settings = @"
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$s/play-random.ps1\" \"$s/zealot-what01.mp3\",\"$s/zealot-what00.mp3\",\"$s/marauder-say-the-word.mp3\"",
+            "command": "powershell -ExecutionPolicy Bypass -Command \"& '$s/play-random.ps1' '$s/zealot-what01.mp3','$s/zealot-what00.mp3','$s/marauder-say-the-word.mp3'\"",
             "async": true
           }
         ]
@@ -67,7 +67,7 @@ $settings = @"
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$s/play-random.ps1\" \"$s/additional-pylons.mp3\",\"$s/vespene-gas.mp3\"",
+            "command": "powershell -ExecutionPolicy Bypass -Command \"& '$s/play-random.ps1' '$s/additional-pylons.mp3','$s/vespene-gas.mp3'\"",
             "async": true
           }
         ]
@@ -79,7 +79,7 @@ $settings = @"
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$s/play-random.ps1\" \"$s/adjutant-research-complete.mp3\",\"$s/adjutant-upgrade-complete.mp3\"",
+            "command": "powershell -ExecutionPolicy Bypass -Command \"& '$s/play-random.ps1' '$s/adjutant-research-complete.mp3','$s/adjutant-upgrade-complete.mp3'\"",
             "async": true
           }
         ]
@@ -91,7 +91,7 @@ $settings = @"
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File \"$s/play-random.ps1\" \"$s/hightemplar-what00.mp3\",\"$s/siegetank-speak-up.mp3\",\"$s/darktemplar-what-would-you-ask.mp3\"",
+            "command": "powershell -ExecutionPolicy Bypass -Command \"& '$s/play-random.ps1' '$s/hightemplar-what00.mp3','$s/siegetank-speak-up.mp3','$s/darktemplar-what-would-you-ask.mp3'\"",
             "async": true
           }
         ]
